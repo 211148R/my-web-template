@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard สรุปเป้า — สาขายะหา ปี 69</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark"></div>
+      <div>
+        <div class="logo-title">อิบนูอัฟฟาน</div>
+        <div class="logo-sub">สาขายะหา</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" onclick="showPage('dashboard',this)">
+        <span class="nav-icon">▦</span> Dashboard
+      </a>
+      <a href="#" class="nav-item" onclick="showPage('input',this)">
+        <span class="nav-icon">✎</span> กรอกข้อมูล
+      </a>
+      <a href="#" class="nav-item" onclick="showPage('npl',this)">
+        <span class="nav-icon">◈</span> ค่าเผื่อหนี้
+      </a>
+    </nav>
+    <div class="sidebar-footer">ปี 2569 &nbsp;|&nbsp; ไตรมาส <span id="sidebar-q">1</span></div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ===== DASHBOARD PAGE ===== -->
+    <section class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">สรุปผลการดำเนินงาน</h1>
+          <p class="page-sub">สหกรณ์อิสลามอิบนูอัฟฟาน จำกัด — สาขายะหา &nbsp;|&nbsp; เปรียบเทียบเป้าหมายปี 69</p>
+        </div>
+        <div class="quarter-tabs" id="dash-qtabs">
+          <button class="qtab active" onclick="setDashQ(1,this)">มกราคม</button>
+          <button class="qtab" onclick="setDashQ(2,this)">กุมภาพันธ์</button>
+          <button class="qtab" onclick="setDashQ(3,this)">มีนาคม</button>
+        </div>
+      </div>
+
+      <div class="metrics-grid" id="metrics-grid"></div gitio>
+
+      <div class="charts-row">
+        <div class="chart-card wide">
+          <div class="chart-card-header">
+            <span class="chart-card-title">ผลจริง vs เป้าสะสม (฿)</span>
+            <div class="legend-row">
+              <span class="legend-dot" style="background:var(--accent)"></span><span>ผลจริง</span>
+              <span class="legend-dot" style="background:var(--border)"></span><span>เป้า</span>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="cmpChart" role="img" aria-label="ผลจริง vs เป้า"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-card-title">KPI เกิน / ต่ำกว่าเป้า</span>
+          </div>
+          <div class="chart-wrap"><canvas id="kpiChart" role="img" aria-label="สรุป KPI"></canvas></div>
+        </div>
+      </div>
+
+      <div class="progress-card">
+        <div class="chart-card-title" style="margin-bottom:1.25rem;">อัตราสมาชิกที่ใช้บริการ vs เป้า</div>
+        <div class="progress-list" id="progress-list"></div>
+      </div>
+
+      <div class="table-card">
+        <div class="chart-card-title" style="margin-bottom:1rem;">ตารางสรุป KPI ทั้งหมด</div>
+        <div class="table-scroll">
+          <table class="kpi-table" id="kpi-full-table">
+            <thead>
+              <tr>
+                <th>รายการ</th>
+                <th>เป้าทั้งปี 68</th>
+                <th>เป้าทั้งปี 69</th>
+                <th>เป้าสะสม</th>
+                <th>ผลจริง</th>
+                <th>ผลต่าง</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="kpi-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== INPUT PAGE ===== -->
+    <section class="page" id="page-input">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">กรอกข้อมูลผลการดำเนินงาน</h1>
+          <p class="page-sub">ป้อนตัวเลขผลจริงแต่ละไตรมาส แล้วกด "บันทึกข้อมูล"</p>
+        </div>
+        <div class="quarter-tabs">
+          <button class="qtab active" id="iq1" onclick="setInputQ(1)">Q1</button>
+          <button class="qtab" id="iq2" onclick="setInputQ(2)">Q2</button>
+          <button class="qtab" id="iq3" onclick="setInputQ(3)">Q3</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-card">
+          <div class="form-section-title">ด้านการเงิน</div>
+          <div class="field-group">
+            <div class="field">
+              <label>การเพิ่มขึ้นของสินทรัพย์รวม (฿)</label>
+              <input type="number" id="f_asset" placeholder="กรอกผลจริง">
+              <span class="hint" id="h_asset"></span>
+            </div>
+            <div class="field">
+              <label>ผลกำไร (฿)</label>
+              <input type="number" id="f_profit" placeholder="กรอกผลจริง">
+              <span class="hint" id="h_profit"></span>
+            </div>
+            <div class="field">
+              <label>ปล่อยสินเชื่อรวม (฿)</label>
+              <input type="number" id="f_loan" placeholder="กรอกผลจริง">
+              <span class="hint" id="h_loan"></span>
+            </div>
+            <div class="field">
+              <label>เงินรับฝากเพิ่ม (฿)</label>
+              <input type="number" id="f_deposit" placeholder="กรอกผลจริง">
+              <span class="hint" id="h_deposit"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="form-section-title">ด้านสมาชิก</div>
+          <div class="field-group">
+            <div class="field">
+              <label>จำนวนสมาชิกเพิ่ม (คน)</label>
+              <input type="number" id="f_member" placeholder="กรอกผลจริง">
+              <span class="hint" id="h_member"></span>
+            </div>
+            <div class="field">
+              <label>มูลค่าหุ้นเพิ่ม (฿)</label>
+              <input type="number" id="f_share" placeholder="กรอกผลจริง">
+              <span class="hint" id="h_share"></span>
+            </div>
+            <div class="field">
+              <label>สัดส่วนสมาชิกเคลื่อนไหว (%)</label>
+              <input type="number" id="f_active" placeholder="0–100" min="0" max="100">
+              <span class="hint">เป้า: 60%</span>
+            </div>
+            <div class="field">
+              <label>สัดส่วนใช้งานผ่าน App (%)</label>
+              <input type="number" id="f_app" placeholder="0–100" min="0" max="100">
+              <span class="hint">เป้า: 30%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <div class="form-section-title">ด้านคุณภาพหนี้</div>
+          <div class="field-group">
+            <div class="field">
+              <label>NPL ต่อลูกหนี้รวม — บาท (%)</label>
+              <input type="number" id="f_npl" placeholder="เช่น 5.7" step="0.1" min="0" max="100">
+              <span class="hint">เป้า: ≤ 25%</span>
+            </div>
+            <div class="field">
+              <label>NPL ต่อลูกหนี้รวม — ราย (%)</label>
+              <input type="number" id="f_npl2" placeholder="เช่น 0.4" step="0.1" min="0" max="100">
+              <span class="hint">เป้า: ≤ 40%</span>
+            </div>
+            <div class="field">
+              <label>ความสามารถในการจัดเก็บหนี้ (%)</label>
+              <input type="number" id="f_collect" placeholder="0–100" min="0" max="100">
+              <span class="hint">เป้า: 60%</span>
+            </div>
+            <div class="field">
+              <label>สัดส่วนสมาชิก สต.สอ. (%)</label>
+              <input type="number" id="f_satso" placeholder="0–100" min="0" max="100">
+              <span class="hint">เป้า: 20%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" onclick="saveAndGo()">บันทึกข้อมูล & ดู Dashboard →</button>
+        <button class="btn-secondary" onclick="clearInputForm()">ล้างข้อมูล</button>
+      </div>
+
+      <div class="toast" id="toast">✓ บันทึกข้อมูลแล้ว</div>
+    </section>
+
+    <!-- ===== NPL PAGE ===== -->
+    <section class="page" id="page-npl">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">ค่าเผื่อหนี้สงสัยจะสูญ</h1>
+          <p class="page-sub">รายละเอียดค่าเผื่อหนี้แยกตามประเภทลูกหนี้ — สาขายะหา</p>
+        </div>
+      </div>
+
+      <div class="metrics-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.5rem;">
+        <div class="metric-card">
+          <div class="metric-label">ค่าเผื่อหนี้ — ลูกหนี้เงินกู้</div>
+          <div class="metric-value">4.31M ฿</div>
+          <div class="metric-sub neutral">ล่าสุด ไตรมาส 3</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">ค่าเผื่อรายได้ค่าบริการค้างรับ</div>
+          <div class="metric-value">2.50M ฿</div>
+          <div class="metric-sub neutral">ล่าสุด ไตรมาส 3</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">รวมค่าเผื่อหนี้สงสัยจะสูญ</div>
+          <div class="metric-value">6.81M ฿</div>
+          <div class="metric-sub down">↓ ลดลงจากไตรมาสก่อน</div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="chart-card-title" style="margin-bottom:1rem;">ลูกหนี้สามัญ — แยกตามระยะเวลาผิดนัด</div>
+        <div class="table-scroll">
+          <table class="kpi-table">
+            <thead>
+              <tr>
+                <th>ประเภท</th>
+                <th>Q1 — เงินต้น</th>
+                <th>Q1 — ค่าเผื่อ</th>
+                <th>Q2 — เงินต้น</th>
+                <th>Q2 — ค่าเผื่อ</th>
+                <th>Q3 — เงินต้น</th>
+                <th>Q3 — ค่าเผื่อ</th>
+                <th>แนวโน้ม</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ผิดนัด ≤ 2 ปี</td>
+                <td>8.16M</td><td>538K</td>
+                <td>8.32M</td><td>545K</td>
+                <td>8.40M</td><td>547K</td>
+                <td><span class="trend-up">↑ เพิ่ม</span></td>
+              </tr>
+              <tr>
+                <td>ผิดนัด 2–3 ปี</td>
+                <td>1.22M</td><td>274K</td>
+                <td>1.21M</td><td>274K</td>
+                <td>1.17M</td><td>270K</td>
+                <td><span class="trend-down">↓ ลด</span></td>
+              </tr>
+              <tr>
+                <td>ผิดนัด 3–4 ปี</td>
+                <td>447K</td><td>223K</td>
+                <td>446K</td><td>223K</td>
+                <td>547K</td><td>273K</td>
+                <td><span class="trend-up">↑ เพิ่ม</span></td>
+              </tr>
+              <tr>
+                <td>ผิดนัด 4–5 ปี</td>
+                <td>572K</td><td>284K</td>
+                <td>572K</td><td>284K</td>
+                <td>556K</td><td>279K</td>
+                <td><span class="trend-down">↓ ลด</span></td>
+              </tr>
+              <tr>
+                <td>ผิดนัด > 5 ปี</td>
+                <td>3.85M</td><td>2.09M</td>
+                <td>3.83M</td><td>2.08M</td>
+                <td>3.84M</td><td>2.08M</td>
+                <td><span class="trend-neutral">— คงที่</span></td>
+              </tr>
+              <tr class="row-total">
+                <td><strong>รวมเงินกู้สามัญ</strong></td>
+                <td><strong>14.25M</strong></td><td><strong>3.41M</strong></td>
+                <td><strong>14.38M</strong></td><td><strong>3.41M</strong></td>
+                <td><strong>14.49M</strong></td><td><strong>3.45M</strong></td>
+                <td><span class="trend-up">↑ เพิ่ม</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="chart-card" style="margin-top:1.25rem;">
+        <div class="chart-card-header">
+          <span class="chart-card-title">แนวโน้มค่าเผื่อหนี้รวม (M฿)</span>
+        </div>
+        <div class="chart-wrap"><canvas id="nplTrendChart" role="img" aria-label="แนวโน้มค่าเผื่อหนี้"></canvas></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
